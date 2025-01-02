@@ -1,3 +1,4 @@
 datasets
 src/models/saved
 src/models/wandb
+src/models/notebooks/wandb
