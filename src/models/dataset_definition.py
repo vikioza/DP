@@ -20,6 +20,7 @@ class UNSW_NB15(Dataset):
         shuffle: bool = False,
         mapping_file_name: str = None,
         image_folder_name: str = None,
+        binary: bool = False,
     ):
         self.mapping_file = (
             mapping_file_name if mapping_file_name is not None else "unswnb15_img.csv"
@@ -28,6 +29,10 @@ class UNSW_NB15(Dataset):
             image_folder_name if image_folder_name is not None else "image"
         )
         self.mapping = pd.read_csv(os.path.join(self.BASE_PATH, self.mapping_file))
+        if binary:
+            self.mapping["label"] = self.mapping["label"].apply(
+                lambda x: "normal" if x.lower() == "normal" else "anomaly"
+            )
         self.mapping = pd.get_dummies(self.mapping, columns=["label"])
 
         if shuffle:
