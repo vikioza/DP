@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def convert_feature_to_rgb_image(feature: list, height: int, width: int):
+def convert_feature_to_rgb_image(features: list, height: int, width: int):
     size = height * width
-    data = np.array(feature)
+    data = np.array(features)
     data = np.pad(data, pad_width=int((size - len(data)) / 2), constant_values=0)
     data = data.reshape(height, width)
 

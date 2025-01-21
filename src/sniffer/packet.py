@@ -40,6 +40,7 @@ class PacketInfo:
             1 if self.internet_layer.get("proto") == 6 else 0,
             self.t_delta,
         ]
+        self._handle_long_payload()  # TODO hotfix, consider finding solution
         payload_bytes = self.payload + [0] * (PAYLOAD_PADDING - len(self.payload))
         return header + payload_bytes
 
@@ -86,8 +87,6 @@ class PacketInfo:
 
         if packet.tcp.has_field("payload"):
             self.payload = [int(byte) for byte in bytearray(packet.tcp.payload.value)]
-        else:
-            self.payload = []
 
         self._freeze_id_set()
 
@@ -103,8 +102,6 @@ class PacketInfo:
 
         if packet.udp.has_field("payload"):
             self.payload = [int(byte) for byte in bytearray(packet.udp.payload.value)]
-        else:
-            self.payload = []
 
         self._freeze_id_set()
 
@@ -130,3 +127,7 @@ class PacketInfo:
             return "UDP"
         if self.internet_layer.get("proto") == 41:
             return "IPv6"
+
+    def _handle_long_payload(self):
+        if len(self.payload) > PAYLOAD_PADDING:
+            self.payload = self.payload[:PAYLOAD_PADDING]
