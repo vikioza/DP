@@ -35,11 +35,19 @@ class AlertSystem:
 
     def dump_stats(self):
         print("ALERT STATS:")
-        anomalies_count = sum(
-            [len(x) for x in self.warnings.values()] + [len(x) for x in self.closed.values()]
+        print(f"Threats detected: {len(self.threats.keys())}")
+        print(
+            f"Total threatening packets detected: {sum([len(x) for x in self.threats.values()])}"
         )
-        print(f"Anomalies detected: {anomalies_count}")
-        print(f"Threats detected: {sum([len(x) for x in self.threats.values()])}")
+
+        print(
+            f"Flows that did not reach the threat threshold: {len(self.warnings.keys())}"
+        )
+        anomalies_count = sum(
+            [len(x) for x in self.warnings.values()]
+            + [len(x) for x in self.closed.values()]
+        )
+        print(f"Anomalous packets detected: {anomalies_count}")
 
     def close_tracked_warning(self, info: PacketInfo):
         if self.warnings.get(info.idset):
