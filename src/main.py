@@ -13,11 +13,12 @@ from sniffer.packet import PacketInfo
 from data_processing.feature_procesing import convert_feature_to_rgb_image
 from models.model_definition import ViT
 from models.model_config import ModelConfig
-from models.dataset_definition import UNSW_NB15
+from models.dataset_definition import UnswNb15
 
 
 DURATION = 300
-PAYLOAD_COMMENTS = False
+VERBOSE = False
+PAYLOAD_COMMENTS = VERBOSE
 
 
 def load_model(classes_count, model_name):
@@ -40,14 +41,36 @@ def load_model(classes_count, model_name):
     return model
 
 
+def dump_stats(
+    packet_count: int,
+    normal_count: int,
+    mismatch_count: int,
+    unrecognized_threats: int,
+    skipped_count: int,
+    error_count: int,
+    flows: FlowControl,
+    alerts: AlertSystem,
+):
+    print("DUMPING STATS...")
+    print(f"Total received packets: {packet_count}")
+    print(f"Normal packets received: {normal_count}")
+    print(f"Prediction mismatches: {mismatch_count}")
+    print(f"Unrecognized threats detected in {unrecognized_threats} packets!")
+    print(f"Packets skipped: {skipped_count}")
+    print(f"Errors handled during runtime: {error_count}")
+    flows.dump_stats()
+    alerts.dump_stats()
+    print("EXITING...")
+
+
 def capture_packets():
     model_payload_multi = load_model(ModelConfig.NUM_CLASSES, "model_unsw_payload")
-    dataset_multi = UNSW_NB15()  # needed to explain classes # refactor!!!
+    dataset_multi = UnswNb15()  # needed to explain classes # refactor!!!
 
     model_payload_binary = load_model(2, "model_unsw_payload_binary_v2")
-    dataset_binary = UNSW_NB15(binary=True)  # needed to explain classes # refactor!!!
+    dataset_binary = UnswNb15(binary=True)  # needed to explain classes # refactor!!!
 
-    alerts = AlertSystem()
+    alerts = AlertSystem(verbose=VERBOSE)
     flows = FlowControl()
 
     packet_count = 0
@@ -57,14 +80,15 @@ def capture_packets():
     unrecognized_threats = 0
     skipped_count = 0
 
-    interface = Interfaces.WIFI
-    # interface = Interfaces.TOWER_ETHERNET
+    # interface = Interfaces.WIFI
+    interface = Interfaces.TOWER_ETHERNET
     start_time = time.time()
     capture = pyshark.LiveCapture(interface=interface, use_ek=True, include_raw=True)
     for packet in capture.sniff_continuously():
         packet_count += 1
         try:
             info = PacketInfo(packet=packet, start_time=start_time)
+            flows.attach(info=info)
             if info.has_payload:
                 img = convert_feature_to_rgb_image(
                     features=info.features, height=32, width=64
@@ -95,26 +119,33 @@ def capture_packets():
                     print(
                         f"Packet {info.readable_id} - Predictions: {label_multi} : {label_binary}"
                     )
-
-                if time.time() - start_time > DURATION:
-                    print("TIMER RAN OUT, STOPPING CAPTURE...")
-                    print("DUMPING STATS...")
-                    print(f"Total received packets: {packet_count}")
-                    print(f"Normal packets received: {normal_count}")
-                    print(f"Prediction mismatches: {mismatch_count}")
-                    print(f"Unrecognized threats detected: {unrecognized_threats}")
-                    print(f"Packets skipped: {skipped_count}")
-                    print(f"Errors handled during runtime: {error_count}")
-                    flows.dump_stats()
-                    alerts.dump_stats()
-                    print("EXITING...")
-                    break
             else:
                 skipped_count += 1
+
+            current_time = time.time()
+            runtime = current_time - start_time
+            if runtime > DURATION:
+                print("TIMER RAN OUT, STOPPING CAPTURE...")
+                break
+
+            if runtime % flows.timeout_window < 1:
+                flows.timeout_eligible_flows(current_time)
+
         except TypeError as te:
             print(te)
             error_count += 1
             continue
+
+    dump_stats(
+        packet_count,
+        normal_count,
+        mismatch_count,
+        unrecognized_threats,
+        skipped_count,
+        error_count,
+        flows,
+        alerts,
+    )
 
 
 if __name__ == "__main__":

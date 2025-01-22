@@ -1,13 +1,17 @@
-from dataclasses import dataclass, field
-
 from sniffer.packet import PacketInfo
 
 
-@dataclass
 class AlertSystem:
-    warnings: dict[frozenset:list] = field(default_factory=dict)
-    threats: dict[frozenset:list] = field(default_factory=dict)
-    closed: dict[frozenset:list] = field(default_factory=dict)
+    warnings: dict[frozenset:list]
+    threats: dict[frozenset:list]
+    closed: dict[frozenset:list]
+    verbose: bool
+
+    def __init__(self, verbose: bool = False):
+        self.verbose = verbose
+        self.warnings = {}
+        self.threats = {}
+        self.closed = {}
 
     def alert_for(self, info: PacketInfo):
         warnings = self.warnings.get(info.idset)
@@ -18,7 +22,8 @@ class AlertSystem:
                 self._alert_threat(info)
                 return
             else:
-                print(f"ANOMALY DETECTED: {info.readable_id}")
+                if self.verbose:
+                    print(f"ANOMALY DETECTED: {info.readable_id}")
                 return
 
         threats = self.threats.get(info.idset)
@@ -58,5 +63,6 @@ class AlertSystem:
 
     def _alert_threat(self, info: PacketInfo):
         self.threats[info.idset] = self.warnings.pop(info.idset)
-        print(f"THREAT DETECTED: {info.readable_id}")
+        if self.verbose:
+            print(f"THREAT DETECTED: {info.readable_id}")
         # TODO do something to handle threat

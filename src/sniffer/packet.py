@@ -1,5 +1,5 @@
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 PAYLOAD_PADDING = 1500
 
@@ -10,14 +10,17 @@ class PacketInfo:
     t_delta: float
     layers: list
     idset: frozenset
-    internet_layer: dict = None
-    transport_layer: dict = None
+    internet_layer: dict
+    transport_layer: dict
     payload: list = None
 
     def __init__(self, packet, start_time):
         self.timestamp = time.time()
         self.t_delta = self.timestamp - start_time
         self.layers = packet.layers
+        self.internet_layer = {}
+        self.transport_layer = {}
+
         if "ip" in packet:
             self._parse_ip(packet)
             if "tcp" in packet:
@@ -56,7 +59,6 @@ class PacketInfo:
         }
 
     def _parse_ip(self, packet):
-        self.internet_layer = {}
         try:
             self.internet_layer["src"] = packet.ip.src.value
             self.internet_layer["dst"] = packet.ip.dst.value
@@ -69,7 +71,6 @@ class PacketInfo:
             raise ae
 
     def _parse_tcp(self, packet):
-        self.transport_layer = {}
         try:
             self.transport_layer["ports"] = packet.tcp.port.value
             self.transport_layer["len"] = packet.tcp.len
