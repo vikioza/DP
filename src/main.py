@@ -57,8 +57,8 @@ def capture_packets():
     unrecognized_threats = 0
     skipped_count = 0
 
-    # interface = Interfaces.ETHERNET
-    interface = Interfaces.TOWER_ETHERNET
+    interface = Interfaces.WIFI
+    # interface = Interfaces.TOWER_ETHERNET
     start_time = time.time()
     capture = pyshark.LiveCapture(interface=interface, use_ek=True, include_raw=True)
     for packet in capture.sniff_continuously():

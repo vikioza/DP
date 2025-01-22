@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 
 
-class UNSW_NB15(Dataset):
+class UnswNb15(Dataset):
     BASE_PATH = "C:\VScode_Projects\DP\datasets\\UNSW_NB15"
     index: int
     batch_size: int
@@ -76,16 +76,19 @@ class CicIds2017(Dataset):
         shuffle: bool = False,
         mapping_file_name: str = None,
         image_folder_name: str = None,
+        binary: bool = False,
     ):
         self.mapping_file = (
-            mapping_file_name
-            if mapping_file_name is not None
-            else "\\cicids2017_img.csv"
+            mapping_file_name if mapping_file_name is not None else "cicids2017_img.csv"
         )
         self.image_folder = (
-            image_folder_name if image_folder_name is not None else "\\image"
+            image_folder_name if image_folder_name is not None else "image"
         )
         self.mapping = pd.read_csv(os.path.join(self.BASE_PATH, self.mapping_file))
+        if binary:
+            self.mapping["label"] = self.mapping["label"].apply(
+                lambda x: "normal" if x.lower() == "benign" else "anomaly"
+            )
         self.mapping = pd.get_dummies(self.mapping, columns=["label"])
 
         if shuffle:

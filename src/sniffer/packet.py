@@ -42,7 +42,7 @@ class PacketInfo:
         ]
         self._handle_long_payload()  # TODO hotfix, consider finding solution
         payload_bytes = self.payload + [0] * (PAYLOAD_PADDING - len(self.payload))
-        return header + payload_bytes
+        return payload_bytes + header
 
     @property
     def readable_id(self):
