@@ -85,10 +85,15 @@ class CicIds2017(Dataset):
             image_folder_name if image_folder_name is not None else "image"
         )
         self.mapping = pd.read_csv(os.path.join(self.BASE_PATH, self.mapping_file))
+
         if binary:
             self.mapping["label"] = self.mapping["label"].apply(
                 lambda x: "normal" if x.lower() == "benign" else "anomaly"
             )
+        # else:
+        #     self.mapping["label"] = self.mapping["label"].apply(
+        #         lambda x: "normal" if x.lower() == "benign" else x.lower()
+        #     )
         self.mapping = pd.get_dummies(self.mapping, columns=["label"])
 
         if shuffle:

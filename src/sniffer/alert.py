@@ -13,12 +13,16 @@ class AlertSystem:
         self.threats = {}
         self.closed = {}
 
+    @property
+    def threshold(self):
+        return 5  # TODO come up with a reasonable calculation
+
     def alert_for(self, info: PacketInfo):
         warnings = self.warnings.get(info.idset)
         if warnings is not None:
             warnings.append(info.timestamp)
             warnings_count = len(warnings)
-            if warnings_count > self._calculate_threshold():
+            if warnings_count > self.threshold:
                 self._alert_threat(info)
                 return
             else:
@@ -57,9 +61,6 @@ class AlertSystem:
     def close_tracked_warning(self, info: PacketInfo):
         if self.warnings.get(info.idset):
             self.closed[info.idset] += self.warnings.pop(info.idset)
-
-    def _calculate_threshold(self):
-        return 5  # TODO come up with a reasonable calculation
 
     def _alert_threat(self, info: PacketInfo):
         self.threats[info.idset] = self.warnings.pop(info.idset)
