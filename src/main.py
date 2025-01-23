@@ -16,10 +16,12 @@ from models.model_config import UnswConfig, CicIdsConfig, BaseConfig
 from models.dataset_definition import UnswNb15, CicIds2017
 
 
+INTERFACE = Interfaces.WIFI
+# INTERFACE = Interfaces.TOWER_ETHERNET
 VERBOSE = True
 PAYLOAD_COMMENTS = False
-DURATION = 600
-
+DURATION = 60
+BASE_MODEL = "cic"
 
 def load_model(model_name: str, model_config: BaseConfig, classes_count: int):
     model = ViT(
@@ -94,7 +96,7 @@ def dump_stats(
 
 
 def capture_packets():
-    model_multi, classes_multi, model_binary, classes_binary = load_models(base="cic")
+    model_multi, classes_multi, model_binary, classes_binary = load_models(base=BASE_MODEL)
 
     alerts = AlertSystem(verbose=VERBOSE)
     flows = FlowControl(verbose=VERBOSE)
@@ -106,11 +108,9 @@ def capture_packets():
     unrecognized_threats = 0
     skipped_count = 0
 
-    # interface = Interfaces.WIFI
-    interface = Interfaces.TOWER_ETHERNET
     start_time = time.time()
     last_timeout_window_time = start_time
-    capture = pyshark.LiveCapture(interface=interface, use_ek=True, include_raw=True)
+    capture = pyshark.LiveCapture(interface=INTERFACE, use_ek=True, include_raw=True)
     for packet in capture.sniff_continuously():
         packet_count += 1
         try:
