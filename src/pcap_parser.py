@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from sniffer.packet import PacketInfo
 
 
-CSV_DIR = "C:\VScode_Projects\DP\datasets\CIC-DDoS-2019\\raw\csv\\03-11"
-PCAP_DIR = "C:\VScode_Projects\DP\datasets\CIC-DDoS-2019\\raw\pcap\PCAP-03-11"
+CSV_DIR = "C:\VScode_Projects\DP\datasets\CIC-IDS-2017\\raw\csv"
+PCAP_DIR = "C:\VScode_Projects\DP\datasets\CIC-IDS-2017\\raw\pcap"
 COLS = [
     "Flow ID",
     " Source IP",
@@ -44,11 +44,6 @@ def read_csv(dir: str, cols: list = None):
     print('DROPPING ROWS WITH MISSING "Flow ID"...')
     df = df.drop(df[pd.isnull(df["Flow ID"])].index)
 
-    # print(f"\nUNIQUE LABELS:")
-    # print(df.Label.unique())
-    # print(f"\nLABEL COUNTS:")
-    # print(df.Label.value_counts())
-
     df["Timestamp"] = pd.to_datetime(df["Timestamp"])
     min_timestamp = df["Timestamp"].min()
 
@@ -66,7 +61,7 @@ def parse_pcap(dir, df: pd.DataFrame, ts, start_time: float):
     )
 
     with open(
-        "C:\VScode_Projects\DP\datasets\CIC-DDoS-2019\clean\sample.csv", "w"
+        "C:\VScode_Projects\DP\datasets\CIC-IDS-2017\clean\sample.csv", "w"
     ) as f:
         column_names = [f"payload_byte_{x}" for x in range(1, 1501)] + [
             "ttl",
