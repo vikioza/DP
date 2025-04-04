@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
 PAYLOAD_PADDING = 1500
@@ -15,7 +16,11 @@ class PacketInfo:
     payload: list = None
 
     def __init__(self, packet, start_time):
-        self.timestamp = time.time()
+        self.timestamp = (
+            datetime.fromisoformat(packet.sniff_timestamp)
+            .replace(tzinfo=timezone.utc)
+            .timestamp()
+        )
         self.t_delta = self.timestamp - start_time
         self.layers = packet.layers
         self.internet_layer = {}
@@ -55,6 +60,17 @@ class PacketInfo:
             "protocol": self._readable_protocol(),
             "src_p": self.transport_layer.get("ports")[0],
             "dst_p": self.transport_layer.get("ports")[1],
+            "timestamp": str(datetime.fromtimestamp(self.timestamp)),
+        }
+
+    @property
+    def number_prot_id(self):
+        return {
+            "src_ip": self.internet_layer.get("src"),
+            "dst_ip": self.internet_layer.get("dst"),
+            "protocol": self.internet_layer.get("proto"),
+            "src_p": self.transport_layer.get("ports")[0],
+            "dst_p": self.transport_layer.get("ports")[1],
             "timestamp": self.timestamp,
         }
 
@@ -92,7 +108,6 @@ class PacketInfo:
         self._freeze_id_set()
 
     def _parse_udp(self, packet):
-        self.transport_layer = {}
         try:
             self.transport_layer["ports"] = packet.udp.port.value
             self.transport_layer["len"] = packet.udp.length

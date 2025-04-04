@@ -6,6 +6,7 @@ import torch
 import numpy as np
 
 # local import
+from utils import dump_stats
 from sniffer.alert import AlertSystem
 from sniffer.config import Interfaces
 from sniffer.flow import FlowControl
@@ -13,90 +14,22 @@ from sniffer.packet import PacketInfo
 from data_processing.feature_procesing import convert_feature_to_rgb_image
 from models.model_definition import ViT
 from models.model_config import UnswConfig, CicIdsConfig, BaseConfig
+from models.model_utils import load_models
 from models.dataset_definition import UnswNb15, CicIds2017
 
 
-INTERFACE = Interfaces.WIFI
-# INTERFACE = Interfaces.TOWER_ETHERNET
+# INTERFACE = Interfaces.WIFI
+INTERFACE = Interfaces.TOWER_ETHERNET
 VERBOSE = True
 PAYLOAD_COMMENTS = False
-DURATION = 60
+DURATION = 600
 BASE_MODEL = "cic"
-
-def load_model(model_name: str, model_config: BaseConfig, classes_count: int):
-    model = ViT(
-        model_config.NUM_PATCHES,
-        classes_count,
-        model_config.PATCH_SIZE,
-        model_config.EMBED_DIM,
-        model_config.NUM_ENCODERS,
-        model_config.NUM_HEADS,
-        model_config.DROPOUT,
-        model_config.ACTIVATION,
-        model_config.IN_CHANNELS,
-    )
-    model.load_state_dict(
-        torch.load(os.path.join("C:\VScode_Projects\DP\src\models\saved", model_name))
-    )
-    model.to(model_config.DEVICE)
-    model.eval()
-    return model
-
-
-def load_models_unsw() -> tuple[ViT, list, ViT, list]:
-    return (
-        load_model("model_unsw_payload", UnswConfig, UnswConfig.NUM_CLASSES_UNSW),
-        UnswNb15().classes_list,
-        load_model(
-            "model_unsw_payload_binary_v2", UnswConfig, UnswConfig.NUM_CLASSES_BINARY
-        ),
-        UnswNb15(binary=True).classes_list,
-    )
-
-
-def load_models_cicids() -> tuple[ViT, list, ViT, list]:
-    return (
-        load_model("model_cic_payload", CicIdsConfig, CicIdsConfig.NUM_CLASSES_CICIDS),
-        CicIds2017().classes_list,
-        load_model(
-            "model_cic_payload_binary", CicIdsConfig, CicIdsConfig.NUM_CLASSES_BINARY
-        ),
-        CicIds2017(binary=True).classes_list,
-    )
-
-
-def load_models(base: str) -> tuple[ViT, list, ViT, list]:
-    if base == "unsw":
-        return load_models_unsw()
-    return load_models_cicids()
-
-
-def dump_stats(
-    packet_count: int,
-    normal_count: int,
-    mismatch_count: int,
-    unrecognized_threats: int,
-    skipped_count: int,
-    error_count: int,
-    flows: FlowControl,
-    alerts: AlertSystem,
-):
-    print("DUMPING STATS...")
-    print(f"Total received packets: {packet_count}")
-    print(f"Packets skipped: {skipped_count}")
-    print(f"Errors handled during runtime: {error_count}")
-    print(f"Normal packets received: {normal_count}")
-    print(f"Prediction mismatches: {mismatch_count}")
-
-    unrecognized_threats += sum([alerts.threshold for _ in alerts.threats])
-    print(f"Unrecognized threats detected in {unrecognized_threats} packets!")
-    flows.dump_stats()
-    alerts.dump_stats()
-    print("EXITING...")
 
 
 def capture_packets():
-    model_multi, classes_multi, model_binary, classes_binary = load_models(base=BASE_MODEL)
+    model_multi, classes_multi, model_binary, classes_binary = load_models(
+        base=BASE_MODEL
+    )
 
     alerts = AlertSystem(verbose=VERBOSE)
     flows = FlowControl(verbose=VERBOSE)
