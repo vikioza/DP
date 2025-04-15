@@ -1,12 +1,18 @@
-from sniffer.packet import PacketInfo
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../")))
+
+
+from packet import PacketInfo
 
 
 TIMEOUT = 60
 
 
 class FlowControl:
-    active: dict[frozenset:list]
-    closed: dict[frozenset:list]
+    active: dict[frozenset : list | dict]
+    closed: dict[frozenset : list | dict]
     verbose: bool
 
     def __init__(self, verbose: bool = False):
@@ -60,3 +66,71 @@ class FlowControl:
 
     def _calculate_flow_metadata(self, flow: list[PacketInfo]):
         return None  # TODO
+
+    def attach_dict(
+        self, idset, data, srcip, window_size: int = 5, uni_dir: bool = False
+    ):
+        if idset not in self.active:
+            self.active[idset] = {"inc": [], "out": [], "srcip": srcip}
+
+        if self.active[idset]["srcip"] == srcip:
+            self.active[idset]["inc"].append(data)
+        elif uni_dir:
+            self.active[idset]["inc"].append(data)
+        else:
+            self.active[idset]["out"].append(data)
+
+        if len(self.active[idset]["inc"]) >= window_size:
+            output_inc = self.active[idset]["inc"][-window_size:]
+        else:
+            output_inc = self.active[idset]["inc"]
+
+        if len(self.active[idset]["out"]) >= window_size:
+            output_out = self.active[idset]["out"][-window_size:]
+        else:
+            output_out = self.active[idset]["out"]
+
+        return output_inc, output_out
+
+
+if __name__ == "__main__":
+    sample_data = [
+        "bla",
+        "bleh",
+        "bla",
+        "bleh",
+        "bla",
+        "bla",
+        "bla",
+        "bla",
+        "gu",
+        "bla",
+    ]
+    sample_ip = ["1", "2", "1", "2", "1", "1", "1", "1", "3", "1"]
+    idset = [
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"1"}),
+        frozenset({"3"}),
+        frozenset({"1"}),
+    ]
+
+    flows = FlowControl()
+    for idx, _ in enumerate(sample_data):
+        print(flows.attach_dict(idset[idx], sample_data[idx], sample_ip[idx]))
+
+    print(flows.active)
+
+    flows.active = {}
+    for idx, _ in enumerate(sample_data):
+        print(
+            flows.attach_dict(
+                idset[idx], sample_data[idx], sample_ip[idx], uni_dir=True
+            )
+        )
+    print(flows.active)
