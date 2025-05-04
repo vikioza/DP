@@ -1,10 +1,9 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../")))
+sys.path.append(os.path.abspath("C:/VScode_Projects/DP/src/"))
 
-
-from packet import PacketInfo
+from sniffer.packet import PacketInfo
 
 
 TIMEOUT = 60
@@ -71,7 +70,11 @@ class FlowControl:
         self, idset, data, srcip, window_size: int = 5, uni_dir: bool = False
     ):
         if idset not in self.active:
-            self.active[idset] = {"inc": [], "out": [], "srcip": srcip}
+            if idset in self.closed:
+                self.active[idset] = self.closed[idset]
+                self.closed.pop(idset, None)
+            else:
+                self.active[idset] = {"inc": [], "out": [], "srcip": srcip}
 
         if self.active[idset]["srcip"] == srcip:
             self.active[idset]["inc"].append(data)
@@ -91,6 +94,10 @@ class FlowControl:
             output_out = self.active[idset]["out"]
 
         return output_inc, output_out
+    
+    def cleanup(self):
+        self.closed = self.active
+        self.active = {}
 
 
 if __name__ == "__main__":

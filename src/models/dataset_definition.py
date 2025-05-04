@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import h5py as h5
 
 
 from torchvision import transforms
@@ -77,6 +78,7 @@ class CicIds2017(Dataset):
         mapping_file_name: str = None,
         image_folder_name: str = None,
         binary: bool = False,
+        hdf5: bool = False,
     ):
         self.mapping_file = (
             mapping_file_name if mapping_file_name is not None else "cicids2017_img.csv"
@@ -96,6 +98,8 @@ class CicIds2017(Dataset):
         #     )
         self.mapping = pd.get_dummies(self.mapping, columns=["label"])
 
+        self.hdf5 = hdf5
+
         if shuffle:
             self.mapping = self.mapping.sample(frac=1)  # shuffle
 
@@ -111,14 +115,25 @@ class CicIds2017(Dataset):
         return len(self.mapping)
 
     def __getitem__(self, idx):
-        img_name = self.mapping[idx, 0]
-        img = read_image(os.path.join(self.BASE_PATH, self.image_folder, img_name))
-
         label = [
             1 if label_class is True else 0 for label_class in self.mapping[idx, 1:]
         ]
+        if len(self.classes_list) == 1:
+            label = [0] + label if self.classes_list[0] == "normal" else label + [0]
         label = np.array(label)
 
+        if self.hdf5:
+            with h5.File(
+                os.path.join(self.BASE_PATH, self.image_folder, "binary_data.hdf5"),
+                "r",
+            ) as f:
+                data = f["images"]
+                image = data[idx]
+                image = self.transform(image)
+                return image, label
+
+        img_name = self.mapping[idx, 0]
+        img = read_image(os.path.join(self.BASE_PATH, self.image_folder, img_name))
         return img, label
 
     def translate_encoded_label(self, encoded_label):
