@@ -86,7 +86,12 @@ class CicIds2017(Dataset):
         self.image_folder = (
             image_folder_name if image_folder_name is not None else "image"
         )
-        self.mapping = pd.read_csv(os.path.join(self.BASE_PATH, self.mapping_file))
+        try:
+            self.mapping = pd.read_csv(os.path.join(self.BASE_PATH, self.mapping_file))
+        except UnicodeDecodeError:
+            self.mapping = pd.read_csv(
+                os.path.join(self.BASE_PATH, self.mapping_file), encoding="cp1252"
+            )
 
         if binary:
             self.mapping["label"] = self.mapping["label"].apply(

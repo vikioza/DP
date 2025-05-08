@@ -27,6 +27,6 @@ class UnswConfig(BaseConfig):
 
 
 class CicIdsConfig(BaseConfig):
-    NUM_CLASSES_CICIDS = 15
+    NUM_CLASSES = 15
     NUM_HEADS = 16
     NUM_ENCODERS = 16
