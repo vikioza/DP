@@ -1,6 +1,15 @@
-import time
+import os
+import sys
+
+# Get the directory where the current script is located
+current_dir = os.path.dirname(os.path.abspath(__file__)).split('\\')
+
+# Construct the path to your target folder (e.g., 'data' inside the repo)
+target_folder = "/".join(current_dir[:current_dir.index('src')+1])
+sys.path.append(os.path.abspath(target_folder))
+
 from datetime import datetime, timezone
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 PAYLOAD_PADDING = 1500
 

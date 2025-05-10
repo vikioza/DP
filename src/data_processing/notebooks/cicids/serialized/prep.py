@@ -1,7 +1,12 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath("C:/VScode_Projects/DP/src/"))
+# Get the directory where the current script is located
+current_dir = os.path.dirname(os.path.abspath(__file__)).split("\\")
+
+# Construct the path to your target folder (e.g., 'data' inside the repo)
+target_folder = "/".join(current_dir[: current_dir.index("src") + 1])
+sys.path.append(os.path.abspath(target_folder))
 
 import pandas as pd
 import numpy as np
@@ -41,15 +46,17 @@ def gray_filter(img, tolerance):
 
 
 def save_image(count: int):
-    with h5.File(PATH+IMAGE_DIR_NAME+"binary_data.hdf5", "w") as f:
-        dataset = f.require_dataset("images", shape=(count, HEIGHT, WIDTH, 3), dtype=np.uint8)
+    with h5.File(PATH + IMAGE_DIR_NAME + "binary_data.hdf5", "w") as f:
+        dataset = f.require_dataset(
+            "images", shape=(count, HEIGHT, WIDTH, 3), dtype=np.uint8
+        )
         idx = 0
         while True:
             data = IMAGE_QUEUE.get()
             if data is None:
                 print("THREAD DEATH")
                 break
-            
+
             # data = data.reshape(HEIGHT, WIDTH)
             # channel_1 = data.astype("float64")
             # channel_2 = np.rot90(channel_1, k=2).reshape(HEIGHT, WIDTH)
@@ -57,7 +64,7 @@ def save_image(count: int):
 
             # img = np.stack((channel_1, channel_2, channel_3)).transpose((1, 2, 0))
             image = gray_filter(data, TOLERANCE)
-                        
+
             dataset[idx] = image
             idx += 1
             IMAGE_QUEUE.task_done()
@@ -65,7 +72,9 @@ def save_image(count: int):
 
 def write_to_log():
     with open(CSV_FILE, "w") as f:
-        np.savetxt(f, [np.array(["idx", "label"])], delimiter=",", fmt="%s", encoding="utf-8")
+        np.savetxt(
+            f, [np.array(["idx", "label"])], delimiter=",", fmt="%s", encoding="utf-8"
+        )
         while True:
             filename, label = LOG_QUEUE.get()
             if label is None:
@@ -77,13 +86,13 @@ def write_to_log():
 
 def convert_dataset_to_image(arr):
     flows = FlowControl()
-    
+
     print("THREADS START")
     log_thread = threading.Thread(target=write_to_log)
     log_thread.start()
     img_thread = threading.Thread(target=save_image, args=(len(arr),))
     img_thread.start()
-    
+
     for idx, row in enumerate(arr):
         idset = list(row[-4:]) + [row[-7]]
         srcip = idset[0]
@@ -92,7 +101,7 @@ def convert_dataset_to_image(arr):
         label = row[-5]
         # data = row[:-1]
         # label = row[-1]
-                
+
         LOG_QUEUE.put((idx, label))
 
         # data, _ = flows.attach_dict(
@@ -102,24 +111,30 @@ def convert_dataset_to_image(arr):
         # data = np.pad(
         #     data, pad_width=int((SIZE - len(data)) / 2), constant_values=0
         # )
-        
-        channel_1, channel_2 = flows.attach_dict(idset=idset, data=data, srcip=srcip, window_size=WINDOW_SIZE)
+
+        channel_1, channel_2 = flows.attach_dict(
+            idset=idset, data=data, srcip=srcip, window_size=WINDOW_SIZE
+        )
         channel_1 = np.array(channel_1).flatten()
         channel_2 = np.array(channel_2).flatten()
-        
-        channel_1 = np.pad(channel_1, pad_width=int((SIZE-len(channel_1))/2), constant_values=0)
+
+        channel_1 = np.pad(
+            channel_1, pad_width=int((SIZE - len(channel_1)) / 2), constant_values=0
+        )
         channel_1 = channel_1.reshape(HEIGHT, WIDTH)
-        
-        channel_2 = np.pad(channel_2, pad_width=int((SIZE-len(channel_2))/2), constant_values=0)
+
+        channel_2 = np.pad(
+            channel_2, pad_width=int((SIZE - len(channel_2)) / 2), constant_values=0
+        )
         channel_2 = channel_2.reshape(HEIGHT, WIDTH)
-        
-        channel_1 = channel_1.astype('float64')
-        channel_2 = channel_2.astype('float64')
+
+        channel_1 = channel_1.astype("float64")
+        channel_2 = channel_2.astype("float64")
         channel_3 = np.zeros(shape=(HEIGHT, WIDTH))
         img = np.stack((channel_1, channel_2, channel_3)).transpose((1, 2, 0))
         # image = img*255
-        
-        IMAGE_QUEUE.put(img) 
+
+        IMAGE_QUEUE.put(img)
 
         if idx % 10_000 == 0:
             print(idx, label)
@@ -137,12 +152,12 @@ if __name__ == "__main__":
     print("READING CSV")
     df = pd.read_csv(PATH + "\clean\CICIDS_converted_data_final_2.csv")
     df = df.drop_duplicates()
-    df.protocol = df.protocol.apply(lambda x: 1 if x == "tcp" else 0 )
+    df.protocol = df.protocol.apply(lambda x: 1 if x == "tcp" else 0)
     print("CONVERT TO NUMPY")
     df = df.to_numpy()
     print("NORMALIZE FEATURES")
     for col_index in range(df.shape[1] - 7):
-    # for col_index in range(df.shape[1] - 3):
+        # for col_index in range(df.shape[1] - 3):
         column = df[:, col_index]
         column_normalized = (column - np.min(column)) / (
             np.max(column) - np.min(column)
