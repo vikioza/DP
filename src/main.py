@@ -1,6 +1,4 @@
-import os
 import pyshark
-import sys
 import time
 import torch
 import numpy as np
@@ -12,10 +10,8 @@ from sniffer.config import Interfaces
 from sniffer.flow import FlowControl
 from sniffer.packet import PacketInfo
 from data_processing.feature_procesing import convert_feature_to_rgb_image
-from models.model_definition import ViT
-from models.model_config import UnswConfig, CicIdsConfig, BaseConfig
+from models.model_config import BaseConfig
 from models.model_utils import load_models
-from models.dataset_definition import UnswNb15, CicIds2017
 
 
 # INTERFACE = Interfaces.WIFI
@@ -113,5 +109,4 @@ def capture_packets():
 
 
 if __name__ == "__main__":
-
     capture_packets()

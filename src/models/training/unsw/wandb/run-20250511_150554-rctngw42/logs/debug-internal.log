@@ -1,0 +1,20 @@
+{"time":"2025-05-11T15:05:54.9599087+02:00","level":"INFO","msg":"using version","core version":"0.19.1"}
+{"time":"2025-05-11T15:05:54.9599087+02:00","level":"INFO","msg":"created symlink","path":"c:\\VScode_Projects\\DP\\src\\models\\training\\unsw\\wandb\\run-20250511_150554-rctngw42\\logs\\debug-core.log"}
+{"time":"2025-05-11T15:05:55.0705521+02:00","level":"INFO","msg":"created new stream","id":"rctngw42"}
+{"time":"2025-05-11T15:05:55.0705521+02:00","level":"INFO","msg":"stream: started","id":"rctngw42"}
+{"time":"2025-05-11T15:05:55.0705521+02:00","level":"INFO","msg":"writer: Do: started","stream_id":"rctngw42"}
+{"time":"2025-05-11T15:05:55.0705521+02:00","level":"INFO","msg":"handler: started","stream_id":"rctngw42"}
+{"time":"2025-05-11T15:05:55.0705521+02:00","level":"INFO","msg":"sender: started","stream_id":"rctngw42"}
+{"time":"2025-05-11T15:05:55.7859965+02:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-05-11T15:05:55.7875553+02:00","level":"ERROR","msg":"git repo not found","error":"repository does not exist"}
+{"time":"2025-05-11T15:07:03.2547052+02:00","level":"INFO","msg":"Pausing system monitor"}
+{"time":"2025-05-11T15:07:03.2690883+02:00","level":"INFO","msg":"Resuming system monitor"}
+{"time":"2025-05-11T15:07:05.0900887+02:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-05-11T15:07:05.0900887+02:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-05-11T15:07:06.0930173+02:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading artifact source-DP-c__VScode_Projects_DP_src_models_training_unsw_unswnb15_payload_binary_training_exp.ipynb","runtime_seconds":2.839818},{"desc":"uploading artifact model_unsw_payload_binary_exp","runtime_seconds":1.8764976,"subtasks":[{"desc":"model_unsw_payload_binary_exp","runtime_seconds":0.3557163,"progress":"800.0KB/28.8MB"}]},{"desc":"uploading artifact source-DP-c__VScode_Projects_DP_src_models_training_unsw_unswnb15_payload_binary_training_exp.ipynb","runtime_seconds":1.004435},{"desc":"uploading wandb-summary.json","runtime_seconds":0.3601533,"progress":"317B/317B"},{"desc":"uploading output.log","runtime_seconds":0.2982872,"progress":"2.0KB/2.0KB"},{"desc":"uploading config.yaml","runtime_seconds":0.2982872,"progress":"894B/894B"}],"total_operations":6}}
+{"time":"2025-05-11T15:07:59.837286+02:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-05-11T15:08:01.1807142+02:00","level":"INFO","msg":"stream: closing","id":"rctngw42"}
+{"time":"2025-05-11T15:08:01.1807142+02:00","level":"INFO","msg":"handler: closed","stream_id":"rctngw42"}
+{"time":"2025-05-11T15:08:01.1807142+02:00","level":"INFO","msg":"writer: Close: closed","stream_id":"rctngw42"}
+{"time":"2025-05-11T15:08:01.1807142+02:00","level":"INFO","msg":"sender: closed","stream_id":"rctngw42"}
+{"time":"2025-05-11T15:08:01.1807142+02:00","level":"INFO","msg":"stream: closed","id":"rctngw42"}

@@ -2,10 +2,10 @@ import os
 import sys
 
 # Get the directory where the current script is located
-current_dir = os.path.dirname(os.path.abspath(__file__)).split('\\')
+current_dir = os.path.dirname(os.path.abspath(__file__)).split("\\")
 
 # Construct the path to your target folder (e.g., 'data' inside the repo)
-target_folder = "/".join(current_dir[:current_dir.index('src')+1])
+target_folder = "/".join(current_dir[: current_dir.index("src") + 1])
 sys.path.append(os.path.abspath(target_folder))
 
 import torch
@@ -49,7 +49,7 @@ def load_model(model_name: str, model_config: BaseConfig, classes_count: int):
 
 def load_models_unsw() -> tuple[ViT, list, ViT, list]:
     return (
-        load_model("model_unsw_payload", UnswConfig, UnswConfig.NUM_CLASSES_UNSW),
+        load_model("model_unsw_payload", UnswConfig, UnswConfig.NUM_CLASSES),
         UnswNb15().classes_list,
         load_model(
             "model_unsw_payload_binary_v2", UnswConfig, UnswConfig.NUM_CLASSES_BINARY
@@ -60,7 +60,7 @@ def load_models_unsw() -> tuple[ViT, list, ViT, list]:
 
 def load_models_cicids() -> tuple[ViT, list, ViT, list]:
     return (
-        load_model("model_cic_payload", CicIdsConfig, CicIdsConfig.NUM_CLASSES_CICIDS),
+        load_model("model_cic_payload", CicIdsConfig, CicIdsConfig.NUM_CLASSES),
         CicIds2017().classes_list,
         load_model(
             "model_cic_payload_binary", CicIdsConfig, CicIdsConfig.NUM_CLASSES_BINARY
