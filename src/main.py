@@ -1,3 +1,4 @@
+import sys
 import pyshark
 import time
 import torch
@@ -18,8 +19,8 @@ from models.model_utils import load_models
 INTERFACE = Interfaces.TOWER_ETHERNET
 VERBOSE = True
 PAYLOAD_COMMENTS = False
-DURATION = 600
-BASE_MODEL = "cic"
+DURATION = 1200
+BASE_MODEL = "unsw"
 
 
 def capture_packets():
@@ -109,4 +110,10 @@ def capture_packets():
 
 
 if __name__ == "__main__":
-    capture_packets()
+    original_stdout = sys.stdout
+    with open("output-log.txt", "w") as f:
+        sys.stdout = f
+        capture_packets()
+    sys.stdout = original_stdout
+    
+    # capture_packets()
