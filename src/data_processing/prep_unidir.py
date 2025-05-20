@@ -17,14 +17,14 @@ import queue
 from sniffer.flow import FlowControl
 
 
-HEIGHT = 32
-WIDTH = 64
+HEIGHT = 128
+WIDTH = 128
 SIZE = HEIGHT * WIDTH
 WINDOW_SIZE = 5
 TOLERANCE = 0.1
 PATH = "C:\VScode_Projects\DP\datasets\CIC-IDS-2017"
-IMAGE_DIR_NAME = "image\\"
-CSV_FILE = PATH + "\cicids2017_img.csv"
+IMAGE_DIR_NAME = "\clean\image_uni_dir\\"
+CSV_FILE = PATH + "\clean\cicids2017_img_uni_dir.csv"
 IMAGE_QUEUE = queue.Queue(10_000)
 LOG_QUEUE = queue.Queue()
 
@@ -63,8 +63,7 @@ def save_image(count: int):
             channel_3 = np.rot90(channel_2, k=2).reshape(HEIGHT, WIDTH)
 
             img = np.stack((channel_1, channel_2, channel_3)).transpose((1, 2, 0))
-            # image = gray_filter(img, TOLERANCE)
-            image = img*255  # if you are not using filter
+            image = gray_filter(img, TOLERANCE)
 
             dataset[idx] = image
             idx += 1
@@ -95,13 +94,22 @@ def convert_dataset_to_image(arr):
     img_thread.start()
 
     for idx, row in enumerate(arr):
-        data = row[:-1]
-        label = row[-1]
+        idset = list(row[-4:]) + [row[-7]]
+        srcip = idset[0]
+        idset = frozenset(idset)
+        data = row[:-5]
+        label = row[-5]
 
         LOG_QUEUE.put((idx, label))
 
-        data = np.pad(data, pad_width=int((SIZE - len(data)) / 2), constant_values=0)
-        
+        data, _ = flows.attach_dict(
+            idset=idset, data=data, srcip=srcip, window_size=WINDOW_SIZE, uni_dir=True
+        )
+        data = np.array(data).flatten()
+        data = np.pad(
+            data, pad_width=int((SIZE - len(data)) / 2), constant_values=0
+        )
+
         IMAGE_QUEUE.put(data)
 
         if idx % 10_000 == 0:
@@ -124,16 +132,19 @@ if __name__ == "__main__":
     print("CONVERT TO NUMPY")
     df = df.to_numpy()
     print("NORMALIZE FEATURES")
-    for col_index in range(df.shape[1] - 3):
+    for col_index in range(df.shape[1] - 7):
+        # for col_index in range(df.shape[1] - 3):
         column = df[:, col_index]
         column_normalized = (column - np.min(column)) / (
             np.max(column) - np.min(column)
         )
         df[:, col_index] = column_normalized
     # normalize t_delta
-    column = df[:, -2]
+    column = df[:, -6]
+    # column = df[:, -2]
     column_normalized = (column - np.min(column)) / (np.max(column) - np.min(column))
-    df[:, -2] = column_normalized
+    df[:, -6] = column_normalized
+    # df[:, -2] = column_normalized
 
     print("PROCESS AND SAVE DATA")
     convert_dataset_to_image(df)
